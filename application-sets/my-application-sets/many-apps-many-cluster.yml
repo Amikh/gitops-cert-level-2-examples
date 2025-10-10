@@ -1,30 +1,25 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: cluster-git
+  name: sealed-secrets
 spec:
   generators:
-    # matrix 'parent' generator
-    - matrix:
-        generators:
-          # git generator, 'child' #1
-          - git:
-              repoURL: https://github.com/Amikh/gitops-cert-level-2-examples
-              revision: HEAD
-              directories:
-                - path: application-sets/example-apps/*
-          # cluster generator, 'child' #2
-          - clusters: {}
-              
+    - clusters: {}
   template:
     metadata:
-      name: '{{path.basename}}-{{name}}'
+      name: sealed-secrets-{{name}}
     spec:
-      project: '{{metadata.labels.environment}}'
+      project: default
       source:
-        repoURL: https://github.com/Amikh/gitops-cert-level-2-examples
+        repoURL: https://github.com/Amikh/gitops-cert-level-2-examples.git
         targetRevision: HEAD
-        path: '{{path}}'
+        path: application-sets/example-apps/sealed-secrets
       destination:
         server: '{{server}}'
-        namespace: '{{path.basename}}'
+        namespace: kube-system
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
