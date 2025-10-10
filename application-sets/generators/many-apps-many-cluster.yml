@@ -1,36 +1,22 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: many-apps-many-clusters
+  name: sealed-secrets-many-clusters
 spec:
   generators:
-    # Matrix generator combines Git (apps) + Clusters
-    - matrix:
-        generators:
-          # 1️⃣ Git generator - iterate over all application folders
-          - git:
-              repoURL: https://github.com/Amikh/gitops-cert-level-2-examples.git
-              revision: HEAD
-              directories:
-                - path: application-sets/example-apps/*
-
-          # 2️⃣ Cluster generator - iterate over all connected clusters
-          - clusters: {}
-
-  # Template for each generated Application
+    - clusters: {}
   template:
     metadata:
-      name: '{{path.basename}}-{{name}}'
+      name: sealed-secrets-{{name}}
     spec:
       project: default
       source:
         repoURL: https://github.com/Amikh/gitops-cert-level-2-examples.git
         targetRevision: HEAD
-        path: '{{path}}'
+        path: application-sets/example-apps/sealed-secrets
       destination:
         server: '{{server}}'
-        namespace: '{{path.basename}}'
-
+        namespace: kube-system
       syncPolicy:
         automated:
           prune: true
